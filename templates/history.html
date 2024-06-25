@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solax - historie</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/universal.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <!--Navbar-->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Solax</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav
+                ">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">domů</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="history">historie</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    <!--Export as CSV button-->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <button class="btn btn-primary" id="export">exportovat jako CSV</button>
+            </div>
+        </div>
+    </div>
+    <!--Table-->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <!--stamp TIMESTAMP NOT NULL PRIMARY KEY, voltage FLOAT, current FLOAT, power FLOAT, temp FLOAT, charge FLOAT, solar FLOAT, home FLOAT, grid FLOAT-->
+                            <th>čas</th>
+                            <th>napětí - baterie</th>
+                            <th>proud - baterie</th>
+                            <th>teplota - baterie</th>
+                            <th>stav - baterie</th>
+                            <th>in(+)/out(-) - baterie</th>
+                            <th>výkon - panel</th>
+                            <th>spotřeba - domov</th>
+                            <th>in(-)/out(+) - síť</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <!--
+                            {'2024-05-24-09:40:53': {'charge': 78, 'current': -2.1, 'grid': 0, 'home': 2411, 'power': -791, 'solar': 1662, 'temp': 32, 'voltage': 359.5}, '2024-05-24-09:45:53': {'charge': 79, 'current': 3.5, 'grid': -213, 'home': 1211, 'power': 1271, 'solar': 2581, 'temp': 32, 'voltage': 363.2}}
+                        -->
+
+                        {% for stamp, data in data.items() %}
+                        <tr>
+                            <td>{{ stamp }}</td>
+                            <td>{{ data['voltage'] }}V</td>
+                            <td>{{ data['current'] }}A</td>
+                            <td>{{ data['temp'] }}C</td>
+                            <td>{{ data['charge'] }}%</td>
+                            <td>{{ data['power'] }}W</td>
+                            <td>{{ data['solar'] }}W</td>
+                            <td>{{ data['home'] }}W</td>
+                            <td>{{ data['grid'] }}W</td>
+                        </tr>
+                        {% endfor %}
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        //Export as CSV
+        document.getElementById('export').addEventListener('click', function() {
+            var data = document.querySelector('table').outerHTML;
+            var csv = 'data:text/csv;charset=utf-8,' + data;
+            var link = document.createElement('a');
+            link.setAttribute('href', encodeURI(csv));
+            link.setAttribute('download', 'data.csv');
+            link.click();
+        });
+    </script>
+</body>
+</html>

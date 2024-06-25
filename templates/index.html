@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solax Inverter Monitoring</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/universal.css">
+    <meta http-equiv="refresh" content="5">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!--Navbar-->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Solax</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav
+                ">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/">domů</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="history">historie</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <!--End Navbar-->
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>statistiky baterií:</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>napětí: {{ liveStats[0] }}V</p>
+                        <p>proud: {{ liveStats[1] }}A</p>
+                        <p>teplota: {{ liveStats[3] }}C</p>
+                        <p>stav: {{ liveStats[4] }}%</p>
+                        <p>in(+)/out(-): {{ liveStats[2] }}W</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>statistiky panelů:</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>výkon: {{ liveStats[5] }}W</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>statistiky sítě:</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>spotřeba domácnosti: {{ liveStats[6] }}W</p>
+                        <p>in(-)/out(+): {{ liveStats[7] }}W</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>graf baterie</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graf-baterie-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>graf solár</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graf-solar-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>graf grid</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graf-grid-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>graf domácnosti</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graf-domacnost-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        var data = {{ graphData|tojson }};
+        const timestamps = Object.keys(data);
+
+        const charge = timestamps.map(ts => ({ timestamp: ts, value: data[ts].charge }));
+        const current = timestamps.map(ts => ({ timestamp: ts, value: data[ts].current }));
+        const grid = timestamps.map(ts => ({ timestamp: ts, value: data[ts].grid }));
+        const home = timestamps.map(ts => ({ timestamp: ts, value: data[ts].home }));
+        const power = timestamps.map(ts => ({ timestamp: ts, value: data[ts].power }));
+        const solar = timestamps.map(ts => ({ timestamp: ts, value: data[ts].solar }));
+        const temp = timestamps.map(ts => ({ timestamp: ts, value: data[ts].temp }));
+        const voltage = timestamps.map(ts => ({ timestamp: ts, value: data[ts].voltage }));
+
+
+        console.log(charge);
+        console.log(current);
+        console.log(grid);
+        console.log(home);
+        console.log(power);
+        console.log(solar);
+        console.log(temp);
+        console.log(voltage);
+
+        // plot the data
+        new Chart("graf-baterie-chart", {
+            type: "line",
+            data: {
+            labels: timestamps,
+            datasets: [{
+                label: "nabití baterie [%]",
+                fill: false,
+                pointRadius: 2,
+                borderColor: "rgba(0,0,255,0.5)",
+                data: charge.map(x => x.value || 0)
+            }]
+            },
+            options: {
+            animation: {
+                duration: 0 // Turn off animation
+            },
+            legend: { display: false },
+            title: {
+                display: true,
+                text: "Battery Charge",
+                fontSize: 16
+            }
+            }
+        });
+        
+        // plot the data
+        new Chart("graf-grid-chart", {
+            type: "line",
+            data: {
+            labels: timestamps,
+            datasets: [{
+                label: "síť [W]",
+                fill: false,
+                pointRadius: 2,
+                borderColor: "rgba(0,0,255,0.5)",
+                data: grid.map(x => x.value || 0)
+            }]
+            },
+            options: {
+            animation: {
+                duration: 0 // Turn off animation
+            },
+            legend: { display: false },
+            title: {
+                display: true,
+                text: "Grid Power",
+                fontSize: 16
+            }
+            }
+        });
+
+
+        // plot the data
+        new Chart("graf-solar-chart", {
+            type: "line",
+            data: {
+            labels: timestamps,
+            datasets: [{
+                label: "solár [W]",
+                fill: false,
+                pointRadius: 2,
+                borderColor: "rgba(0,0,255,0.5)",
+                data: solar.map(x => x.value || 0)
+            }]
+            },
+            options: {
+            animation: {
+                duration: 0 // Turn off animation
+            },
+            legend: { display: false },
+            title: {
+                display: true,
+                text: "solár - výkon",
+                fontSize: 16
+            }
+            }
+        });
+
+        // plot the data
+        new Chart("graf-domacnost-chart", {
+            type: "line",
+            data: {
+            labels: timestamps,
+            datasets: [{
+                label: "domácnost [W]",
+                fill: false,
+                pointRadius: 2,
+                borderColor: "rgba(0,0,255,0.5)",
+                data: home.map(x => x.value || 0)
+            }]
+            },
+            options: {
+            animation: {
+                duration: 0 // Turn off animation
+            },
+            legend: { display: false },
+            title: {
+                display: true,
+                text: "Home Power",
+                fontSize: 16
+            }
+            }
+        });
+    </script>
+</body>
+</html>
